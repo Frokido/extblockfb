@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook Content Filter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        body.dark-mode {
+            background-color: #333;
+            color: #fff;
+        }
+        h1, h2, h3 {
+            margin: 10px 0;
+        }
+        .container {
+            padding: 20px;
+            max-width: 600px;
+            margin: auto;
+        }
+        .filter-section {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .filter-section.dark-mode {
+            background-color: #444;
+            color: #fff;
+        }
+        .filter-section label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        .filter-section input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #673ab7;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #5e35b1;
+        }
+        .loading {
+            display: none;
+            margin-top: 20px;
+            color: #673ab7;
+        }
+        .dark-mode .loading {
+            color: #bb86fc;
+        }
+        .feedback-form {
+            margin-top: 20px;
+        }
+        .feedback-form textarea {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .feedback-form button {
+            background-color: #4caf50;
+        }
+        .feedback-form button:hover {
+            background-color: #45a049;
+        }
+        .help-section {
+            margin-top: 20px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .help-section.dark-mode {
+            background-color: #555;
+            color: #fff;
+        }
+        .help-section h3 {
+            margin-top: 0;
+        }
+        .help-section p {
+            margin: 10px 0;
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 0;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        .search-bar {
+            margin-bottom: 20px;
+        }
+        .search-bar input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .preset-section {
+            margin-top: 20px;
+        }
+        .preset-section button {
+            margin-right: 10px;
+        }
+        .notification {
+            display: none;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+        }
+        .notification.dark-mode {
+            background-color: #4caf50;
+            color: #fff;
+            border-color: #4caf50;
+        }
+        .dark-mode-toggle {
+            margin-top: 20px;
+        }
+        .rate-us {
+            margin-top: 20px;
+        }
+        .rate-us button {
+            background-color: #ffeb3b;
+            color: #333;
+        }
+        .rate-us button:hover {
+            background-color: #fdd835;
+        }
+        .changelog {
+            margin-top: 20px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .changelog.dark-mode {
+            background-color: #555;
+            color: #fff;
+        }
+        .changelog h3 {
+            margin-top: 0;
+        }
+        .changelog p {
+            margin: 10px 0;
+        }
+        .support-links {
+            margin-top: 20px;
+        }
+        .about-section {
+            margin-top: 20px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .about-section.dark-mode {
+            background-color: #555;
+            color: #fff;
+        }
+        .about-section h3 {
+            margin-top: 0;
+        }
+        .about-section p {
+            margin: 10px 0;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Facebook Content Filter Addon</h1>
+        <div class="search-bar">
+            <input type="text" id="search" placeholder="Search filters..." onkeyup="filterSearch()">
+        </div>
+        <div class="filter-section" id="filterSection">
+            <h2>Select Triggers to Avoid</h2>
+            <label><input type="checkbox" id="relationship"> Relationship Issues <span class="tooltip">&#9432;<span class="tooltiptext">Posts related to relationships</span></span></label>
+            <label><input type="checkbox" id="death"> Death Related Posts <span class="tooltip">&#9432;<span class="tooltiptext">Posts related to death</span></span></label>
+            <label><input type="checkbox" id="children"> Posts About Children <span class="tooltip">&#9432;<span class="tooltiptext">Posts related to children</span></span></label>
+            <label><input type="checkbox" id="politics"> Political News <span class="tooltip">&#9432;<span class="tooltiptext">Posts related to politics</span></span></label>
+            <label><input type="checkbox" id="health"> Health Issues <span class="tooltip">&#9432;<span class="tooltiptext">Posts related to health</span></span></label>
+            <label><input type="checkbox" id="work"> Work-Related Posts <span class="tooltip">&#9432;<span class="tooltiptext">Posts related to work</span></span></label>
+            <label><input type="checkbox" id="travel"> Travel Posts <span class="tooltip">&#9432;<span class="tooltiptext">Posts related to travel</span></span></label>
+            <label><input type="checkbox" id="sports"> Sports News <span class="tooltip">&#9432;<span class="tooltiptext">Posts related to sports</span></span></label>
+            <label><input type="checkbox" id="entertainment"> Entertainment News <span class="tooltip">&#9432;<span class="tooltiptext">Posts related to entertainment</span></span></label>
+            <label><input type="checkbox" id="technology"> Technology News <span class="tooltip">&#9432;<span class="tooltiptext">Posts related to technology</span></span></label>
+            <label><input type="checkbox" id="environment"> Environmental News <span class="tooltip">&#9432;<span class="tooltiptext">Posts related to the environment</span></span></label>
+            <label><input type="checkbox" id="finance"> Finance News <span class="tooltip">&#9432;<span class="tooltiptext">Posts related to finance</span></span></label>
+            <label><input type="checkbox" id="education"> Education News <span class="tooltip">&#9432;<span class="tooltiptext">Posts related to education</span></span></label>
+            <label><input type="checkbox" id="celebrity"> Celebrity News <span class="tooltip">&#9432;<span class="tooltiptext">Posts related to celebrities</span></span></label>
+            <label><input type="checkbox" id="gaming"> Gaming News <span class="tooltip">&#9432;<span class="tooltiptext">Posts related to gaming</span></span></label>
+            <label><input type="checkbox" id="books"> Book Reviews <span class="tooltip">&#9432;<span class="tooltiptext">Posts related to books</span></span></label>
+            <label><input type="checkbox" id="movies"> Movie Reviews <span class="tooltip">&#9432;<span class="tooltiptext">Posts related to movies</span></span></label>
+            <label><input type="checkbox" id="music"> Music News <span class="tooltip">&#9432;<span class="tooltiptext">Posts related to music</span></span></label>
+        </div>
+        <div class="preset-section">
+            <button onclick="savePreset()">Save Preset</button>
+            <button onclick="loadPreset()">Load Preset</button>
+            <button onclick="exportSettings()">Export Settings</button>
+            <button onclick="importSettings()">Import Settings</button>
+            <button onclick="resetToDefault()">Reset to Default</button>
+        </div>
+        <button onclick="applyFilters()">Apply Filters</button>
+        <button onclick="clearFilters()">Clear Filters</button>
+        <div class="dark-mode-toggle">
+            <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+        </div>
+        <div class="loading" id="loading">Applying filters...</div>
+        <div class="notification" id="notification">Filters applied!</div>
+        <div class="feedback-form">
+            <h2>Provide Feedback</h2>
+            <textarea id="feedback" placeholder="Your feedback here..."></textarea>
+            <button onclick="submitFeedback()">Submit Feedback</button>
+        </div>
+        <div class="rate-us">
+            <h3>Rate Us</h3>
+            <button onclick="rateUs()">Rate Now</button>
+        </div>
+        <div class="changelog">
+            <h3>Changelog</h3>
+            <p>Version 1.0 - Initial release</p>
+        </div>
+        <div class="support-links">
+            <h3>Support</h3>
+            <p><a href="#" target="_blank">Help Center</a></p>
+            <p><a href="#" target="_blank">Contact Us</a></p>
+        </div>
+        <div class="about-section">
+            <h3>About</h3>
+            <p>Developed by Your Name</p>
+            <p>Email: contact@example.com</p>
+        </div>
+        <p style="text-align: center; margin-top: 20px;">Version 1.0</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPreferences();
+            checkForUpdates();
+        });
+
+        function loadPreferences() {
+            chrome.storage.sync.get(['filters', 'darkMode', 'presets'], (data) => {
+                const filters = data.filters || {};
+                Object.keys(filters).forEach(key => {
+                    document.getElementById(key).checked = filters[key];
+                });
+                if (data.darkMode) {
+                    document.body.classList.add('dark-mode');
+                    document.getElementById('filterSection').classList.add('dark-mode');
+                    document.getElementById('helpSection').classList.add('dark-mode');
+                }
+                if (data.presets) {
+                    localStorage.setItem('presets', JSON.stringify(data.presets));
+                }
+            });
+        }
+
+        function applyFilters() {
+            const filters = {
+                relationship: document.getElementById('relationship').checked,
+                death: document.getElementById('death').checked,
+                children: document.getElementById('children').checked,
+                politics: document.getElementById('politics').checked,
+                health: document.getElementById('health').checked,
+                work: document.getElementById('work').checked,
+                travel: document.getElementById('travel').checked,
+                sports: document.getElementById('sports').checked,
+                entertainment: document.getElementById('entertainment').checked,
+                technology: document.getElementById('technology').checked,
+                environment: document.getElementById('environment').checked,
+                finance: document.getElementById('finance').checked,
+                education: document.getElementById('education').checked,
+                celebrity: document.getElementById('celebrity').checked,
+                gaming: document.getElementById('gaming').checked,
+                books: document.getElementById('books').checked,
+                movies: document.getElementById('movies').checked,
+                music: document.getElementById('music').checked
+            };
+
+            document.getElementById('loading').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('loading').style.display = 'none';
+                chrome.storage.sync.set({ filters }, () => {
+                    showNotification();
+                    simulateRealTimeFiltering();
+                });
+            }, 1000);
+        }
+
+        function clearFilters() {
+            const checkboxes = document.querySelectorAll('.filter-section input[type="checkbox"]');
+            checkboxes.forEach(checkbox => checkbox.checked = false);
+            chrome.storage.sync.remove('filters', () => {
+                alert("Filters cleared!");
+            });
+        }
+
+        function toggleDarkMode() {
+            const isDarkMode = document.body.classList.toggle('dark-mode');
+            const filterSection = document.getElementById('filterSection');
+            const helpSection = document.getElementById('helpSection');
+            if (isDarkMode) {
+                filterSection.classList.add('dark-mode');
+                helpSection.classList.add('dark-mode');
+            } else {
+                filterSection.classList.remove('dark-mode');
+                helpSection.classList.remove('dark-mode');
+            }
+            chrome.storage.sync.set({ darkMode: isDarkMode });
+        }
+
+        function submitFeedback() {
+            const feedback = document.getElementById('feedback').value;
+            if (!validateFeedback(feedback)) {
+                alert("Please enter a valid feedback message.");
+                return;
+            }
+            alert("Thank you for your feedback!");
+            document.getElementById('feedback').value = '';
+        }
+
+        function validateFeedback(feedback) {
+            return feedback.trim().length > 0 && feedback.length <= 500;
+        }
+
+        function checkForUpdates() {
+            // Simulate an update check
+            setTimeout(() => {
+                alert("You are using the latest version of the Facebook Content Filter Addon.");
+            }, 2000);
+        }
+
+        function filterSearch() {
+            const input = document.getElementById('search').value.toLowerCase();
+            const labels = document.querySelectorAll('.filter-section label');
+            labels.forEach(label => {
+                const text = label.textContent.toLowerCase();
+                label.style.display = text.includes(input) ? 'block' : 'none';
+            });
+        }
+
+        function savePreset() {
+            const filters = {
+                relationship: document.getElementById('relationship').checked,
+                death: document.getElementById('death').checked,
+                children: document.getElementById('children').checked,
+                politics: document.getElementById('politics').checked,
+                health: document.getElementById('health').checked,
+                work: document.getElementById('work').checked,
+                travel: document.getElementById('travel').checked,
+                sports: document.getElementById('sports').checked,
+                entertainment: document.getElementById('entertainment').checked,
+                technology: document.getElementById('technology').checked,
+                environment: document.getElementById('environment').checked,
+                finance: document.getElementById('finance').checked,
+                education: document.getElementById('education').checked,
+                celebrity: document.getElementById('celebrity').checked,
+                gaming: document.getElementById('gaming').checked,
+                books: document.getElementById('books').checked,
+                movies: document.getElementById('movies').checked,
+                music: document.getElementById('music').checked
+            };
+            const presetName = prompt("Enter a name for your preset:");
+            if (presetName) {
+                let presets = JSON.parse(localStorage.getItem('presets')) || {};
+                presets[presetName] = filters;
+                localStorage.setItem('presets', JSON.stringify(presets));
+                chrome.storage.sync.set({ presets });
+                alert("Preset saved!");
+            }
+        }
+
+        function loadPreset() {
+            const presets = JSON.parse(localStorage.getItem('presets')) || {};
+            const presetName = prompt("Enter the name of the preset to load:");
+            if (presetName && presets[presetName]) {
+                const filters = presets[presetName];
+                Object.keys(filters).forEach(key => {
+                    document.getElementById(key).checked = filters[key];
+                });
+                chrome.storage.sync.set({ filters });
+                alert("Preset loaded!");
+            } else {
+                alert("Preset not found.");
+            }
+        }
+
+        function exportSettings() {
+            const filters = JSON.stringify(chrome.storage.sync.get(['filters', 'darkMode', 'presets']));
+            const blob = new Blob([filters], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'facebook_filter_settings.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            alert("Settings exported!");
+        }
+
+        function importSettings() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const settings = JSON.parse(e.target.result);
+                            chrome.storage.sync.set(settings, () => {
+                                alert("Settings imported!");
+                                location.reload();
+                            });
+                        } catch (error) {
+                            alert("Invalid file format.");
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+
+        function resetToDefault() {
+            if (confirm("Are you sure you want to reset to default settings?")) {
+                chrome.storage.sync.clear(() => {
+                    location.reload();
+                });
+            }
+        }
+
+        function showNotification() {
+            const notification = document.getElementById('notification');
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        function simulateRealTimeFiltering() {
+            // Simulate real-time filtering of posts on the Facebook page
+            console.log("Simulating real-time filtering...");
+        }
+
+        function rateUs() {
+            alert("Thank you for considering rating us! You can rate us on the Chrome Web Store.");
+        }
+    </script>
+</body>
+</html>
